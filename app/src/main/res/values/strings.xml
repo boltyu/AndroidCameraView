@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">同步录像</string>
+    <string name="recoding">正在录像</string>
+    <string name="button_trig_tip">重新\n连接</string>
+    <string name="fileinfo_name_tip">输入患者名称</string>
+    <string name="fileinfo_note_tip">备注，例如：无DBS设备，单侧手术</string>
+    <string name="fileinfo_op">手术</string>
+    <string name="fileinfo_op_yes">术前</string>
+    <string name="fileinfo_op_no">术后</string>
+    <string name="fileinfo_dbs">DBS</string>
+    <string name="fileinfo_dbs_on">开</string>
+    <string name="fileinfo_dbs_off">关</string>
+    <string name="fileinfo_medicine">用药</string>
+    <string name="fileinfo_medicine_yes">是</string>
+    <string name="fileinfo_medicine_no">否</string>
+</resources>

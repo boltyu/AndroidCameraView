@@ -1,0 +1,92 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hidden_panel"
+    android:orientation="vertical"
+    android:layout_width="100dp"
+    android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/editTextPatientsName"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/fileinfo_name_tip"
+        android:fontFamily="sans-serif"
+        android:inputType="text">
+    </EditText>
+
+    <LinearLayout
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="@dimen/fileinfo_discriptionsize"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/fileinfo_op"
+            android:textSize="@dimen/fileinfo_textsize" />
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <RadioButton
+                android:text="@string/fileinfo_op_no"
+                android:id="@+id/afterop"
+                android:layout_width="@dimen/fileinfo_optionsize"
+                android:layout_height="match_parent"
+                android:checked="true"
+                />
+            <RadioButton
+                android:text="@string/fileinfo_op_yes"
+                android:id="@+id/beforeop"
+                android:layout_width="@dimen/fileinfo_optionsize"
+                android:layout_height="match_parent"
+                />
+        </RadioGroup>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_marginStart="25dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:text="@string/fileinfo_medicine"
+            android:textSize="@dimen/fileinfo_textsize"
+            android:gravity="center"
+            android:layout_width="@dimen/fileinfo_discriptionsize"
+            android:layout_height="match_parent" />
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <RadioButton
+                android:text="@string/fileinfo_medicine_yes"
+                android:id="@+id/usemedicine"
+                android:layout_width="@dimen/fileinfo_optionsize"
+                android:layout_height="match_parent"
+                android:checked="true"
+                />
+            <RadioButton
+                android:text="@string/fileinfo_medicine_no"
+                android:id="@+id/nomedicine"
+                android:layout_width="@dimen/fileinfo_optionsize"
+                android:layout_height="match_parent"
+                />
+        </RadioGroup>
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/editTextNotes"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/fileinfo_note_tip"
+        android:fontFamily="sans-serif"
+        android:inputType="text">
+    </EditText>
+
+</LinearLayout>
