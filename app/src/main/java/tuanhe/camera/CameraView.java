@@ -2,6 +2,7 @@ package tuanhe.camera;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.gesture.Gesture;
 import android.graphics.ImageFormat;
@@ -17,6 +18,7 @@ import android.hardware.camera2.params.SessionConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -28,6 +30,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,9 +41,11 @@ import androidx.core.view.MotionEventCompat;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
 
@@ -53,10 +58,10 @@ public class CameraView extends SurfaceView {
     private CameraDevice cd = null;
     private CameraCaptureSession previewSession = null;
     private boolean isRecording = false;
-    public GestureDetectorCompat gestureDetector;
+
     private static MediaRecorder mMediaRecorder;
     public static String s_timestamp_record = "";
-    public static long timestamp_trig = 0;
+    public static long timestamp_record = 0, timestamp_trig = 0;
     private String filefullpath = "";
 
     private CameraDevice.StateCallback cameraCallback = new CameraDevice.StateCallback() {
@@ -75,6 +80,7 @@ public class CameraView extends SurfaceView {
         public void onError(@NonNull CameraDevice cameraDevice, int i) {
             Log.d(TAG, "Camera 0 encounter error");
         }
+
     };
 
     public CameraView(Context context) {
@@ -85,9 +91,7 @@ public class CameraView extends SurfaceView {
         super(context, attrs);
         sContext = context;
         sh = this.getHolder();
-        gestureDetector = new GestureDetectorCompat(context, new MyGestureListener());
         mMediaRecorder = new MediaRecorder();
-        initCamera();
     }
 
     public CameraView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -125,32 +129,34 @@ public class CameraView extends SurfaceView {
             isRecording = false;
             MainActivity.tipstext.setText("");
             File filefrom = new File(filefullpath);
-            File fileto = new File(filefullpath + "+SYNC" + String.valueOf(timestamp_trig)+ ".mp4");
-            filefrom.renameTo(fileto);
+            long difftime = timestamp_trig-timestamp_record;
+            File fileto = new File(filefullpath + s_timestamp_record + "SYNC" + (difftime<0?0:difftime) + ".mp4");
+            if(filefrom.renameTo(fileto)){
+                Toast.makeText(getContext(), "视频已保存",Toast.LENGTH_SHORT).show();
+            }
+            return 0;
         }else{
             if(startRecord() == 0){
-                timestamp_trig = new Date().getTime();
                 MainActivity.tipstext.setText(R.string.recoding);
-                s_timestamp_record = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(new Date());
                 isRecording = true;
+                return 1;
             }else {
-                MainActivity.tipstext.setText("Video path error");
+                MainActivity.tipstext.setText("文件路径有误");
+                return -1;
             }
         }
-        return 0;
     }
 
     private int startRecord(){
         closePreviewSession();
         if(setUpMediaRecorder() == 0) {
             try {
-                final CaptureRequest.Builder prb = cd.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                final CaptureRequest.Builder prb = cd.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                 prb.addTarget(sh.getSurface());
                 prb.addTarget(mMediaRecorder.getSurface());
                 CameraCaptureSession.StateCallback ccssc = new CameraCaptureSession.StateCallback() {
                     @Override
                     public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                        Log.d(TAG, "Configured: ");
                         previewSession = cameraCaptureSession;
                         CaptureRequest previewRequest = prb.build();
                         try {
@@ -159,6 +165,8 @@ public class CameraView extends SurfaceView {
                             e.printStackTrace();
                         }
                         mMediaRecorder.start();
+                        timestamp_record = new Date().getTime();
+                        s_timestamp_record = new SimpleDateFormat("_yyyyMMdd_HHmmss_", Locale.CHINA).format(timestamp_record);
                     }
 
                     @Override
@@ -167,9 +175,12 @@ public class CameraView extends SurfaceView {
                     }
                 };
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    List<OutputConfiguration> outputConfigurationList = new ArrayList<>();
+                    outputConfigurationList.add(new OutputConfiguration(sh.getSurface()));
+                    outputConfigurationList.add(new OutputConfiguration(mMediaRecorder.getSurface()));
                     SessionConfiguration sessionConfiguration = new SessionConfiguration(SessionConfiguration.SESSION_REGULAR
-                            , Collections.singletonList(new OutputConfiguration(sh.getSurface()))
-                            , new Executor() {
+                            ,outputConfigurationList
+                            ,new Executor() {
                         @Override
                         public void execute(Runnable runnable) {
                             Log.d(TAG, "execute");
@@ -184,6 +195,7 @@ public class CameraView extends SurfaceView {
                 e.printStackTrace();
                 return -1;
             }
+
             return 0;
         }
         else
@@ -253,11 +265,11 @@ public class CameraView extends SurfaceView {
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         // Step 4: Set output file
         //mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + File.separator + "A.mp4");
-        filefullpath = MainActivity.sv.GetFilePath() + File.separator + MainActivity.sv.GetFileName() + "_" + s_timestamp_record;
+        filefullpath = MainActivity.sv.GetFilePath() + File.separator + MainActivity.sv.GetFileName();
         mMediaRecorder.setOutputFile(filefullpath);
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
-        mMediaRecorder.setVideoSize(1280,960);
+        mMediaRecorder.setVideoSize(1280,720);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         // Step 5: Set the preview output
@@ -287,49 +299,6 @@ public class CameraView extends SurfaceView {
         return isRecording;
     }
 
-    // Gesture Processing
-    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
 
-        private static final String DEBUG_TAG = "Gestures";
 
-        @Override
-        public boolean onDown(MotionEvent event) {
-            Log.d(DEBUG_TAG,"onDown: " + event.toString());
-            return true;
-        }
-
-        @Override
-        public boolean onFling(MotionEvent event1, MotionEvent event2,
-                               float velocityX, float velocityY) {
-            Log.d(DEBUG_TAG, "onFling: " + event1.toString() + event2.toString());
-            if((event2.getY() - event1.getY()) > 200){
-                // swipe up to trigger
-                MainActivity.sv.hide();
-
-            }else if((event1.getY() - event2.getY()) > 200){
-                // swipe down to edit info
-                MainActivity.sv.show();
-            }
-            return false;
-        }
-
-        @Override
-        public boolean onDoubleTap(MotionEvent e){
-            onRecording();
-            return false;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e){
-            // LongPress to start recording
-            if(MainActivity.wifiManager.getConnectionInfo().getSSID().equals("\"Cubie\"") && MainActivity.isconnected){
-                new starttrig().start();
-                timestamp_trig = new Date().getTime() - timestamp_trig;
-                if(timestamp_trig < 0)
-                    timestamp_trig = 0;
-            }
-            else
-                new startwireless().start();
-        }
-    }
 }

@@ -4,6 +4,7 @@ package tuanhe.camera;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.AttributeSet;
@@ -11,11 +12,13 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import java.io.File;
@@ -26,7 +29,7 @@ public class SettingsDialog extends AlertDialog {
     private String fileName = "";
     private AlertDialog fileinfo_edit = null;
 
-    protected SettingsDialog(Context context) {
+    protected SettingsDialog(final Context context) {
         super(context);
         final Builder fileinfo_builder = new Builder(context);
         LayoutInflater inflater = getLayoutInflater();
@@ -35,6 +38,7 @@ public class SettingsDialog extends AlertDialog {
         fileinfo_builder.setTitle("患者信息");
         fileinfo_builder.setView(mfilenamebox)
             .setPositiveButton("继续", new DialogInterface.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.P)
                 public void onClick(DialogInterface dialog, int id) {
                     //            // 创建根目录 "Cubie";
                 File tmpdir = new File(filePath);
@@ -76,16 +80,19 @@ public class SettingsDialog extends AlertDialog {
                 TextView mnote = (TextView)mfilenamebox.findViewById(R.id.editTextNotes);
                 if(mnote.getText().length() > 0)
                     fileName = fileName + "_" + mnote.getText().toString();
+                final Context pcontext = context;
+                MainActivity.btnStart.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.btnStart.setVisibility(View.GONE);
+
+                    }
+                });
+                hide();
                 }
             });
         fileinfo_edit = fileinfo_builder.create();
 
-        fileinfo_edit.setOnDismissListener(new OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-
-            }
-        });
     }
 
     protected SettingsDialog(Context context, boolean cancelable, OnCancelListener cancelListener) {
